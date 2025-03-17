@@ -9,9 +9,6 @@ COPY . /app/
 RUN npm install
 RUN npm run build
 
-RUN ls /app
-RUN ls /app/dist
-
 
 FROM nginx:stable-alpine AS frontend
 
