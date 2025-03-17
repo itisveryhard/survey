@@ -1,0 +1,71 @@
+image:
+  name: docker:latest
+  pull_policy: if-not-present
+
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  REGISTRY_IMAGE_APP: $CI_REGISTRY_IMAGE/frontend
+
+.setup-ssh:
+  before_script:
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_KEY")
+    - mkdir -p ~/.ssh
+    - 'echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+# ============ build =================
+
+build:
+  stage: build
+  when: always
+  variables:
+    BUILD_ARGS: |
+      --build-arg=FRONT_BACKEND_URL=$FRONT_BACKEND_URL
+  tags:
+    - x5_builder
+  only:
+    - master
+    - main
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build $BUILD_ARGS --target=frontend -f ./.deploy/Dockerfile -t $REGISTRY_IMAGE_APP:$CI_COMMIT_SHA .
+    - docker push $REGISTRY_IMAGE_APP:$CI_COMMIT_SHA
+
+# ============ push =================
+
+push:
+  stage: push
+  when: always
+  only:
+    - master
+    - main
+  tags:
+    - x5_builder
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $REGISTRY_IMAGE_APP:$CI_COMMIT_SHA
+    - docker tag $REGISTRY_IMAGE_APP:$CI_COMMIT_SHA $REGISTRY_IMAGE_APP:prod
+    - docker push $REGISTRY_IMAGE_APP:prod
+
+# ============ deploy =================
+
+deploy:
+  extends: .setup-ssh
+  when: always
+  stage: deploy
+  tags:
+    - x5_deployer
+  only:
+    - master
+    - main
+  script:
+    - ssh -p $HOST_PORT $HOST_USER@$HOST mkdir -p ./$APPLICATION_PATH
+    - sed -i "s|\$REGISTRY_IMAGE_APP|${REGISTRY_IMAGE_APP}|g" .deploy/docker-compose.yml
+    - scp -P $HOST_PORT ./.deploy/docker-compose.yml $HOST_USER@$HOST:~/$APPLICATION_PATH/docker-compose.yml
+    - COMMAND="cd ./$APPLICATION_PATH && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && docker-compose down && docker-compose pull && docker-compose up -d"
+    - ssh -p $HOST_PORT $HOST_USER@$HOST "$COMMAND"

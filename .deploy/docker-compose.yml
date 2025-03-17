@@ -1,0 +1,7 @@
+services:
+
+  web-front:
+    image: $REGISTRY_IMAGE_APP:prod
+    restart: always
+    ports:
+      - "127.0.0.1:8001:80"
