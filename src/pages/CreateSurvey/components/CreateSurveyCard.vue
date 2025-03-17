@@ -2,6 +2,19 @@
 import { ref, computed } from 'vue';
 import { Button, InputText, Dropdown } from "primevue";
 
+interface Option {
+  title: string;
+  connection?: string;
+}
+
+interface Form {
+  question: string;
+  options: Option[];
+  connection: string | null; // Поле необязательно
+  nextQuestion: string;
+}
+
+
 defineOptions({
   name: 'CreateSurveyCard'
 });
@@ -11,9 +24,9 @@ defineProps({
   availableQuestions: { type: Array }
 });
 
-const form = ref({
+const form = ref<Form>({
   question: '',
-  options: [{ title: '' }],
+  options: [{ title: '', connection: '' }],
   connection: null,
   nextQuestion: ''
 });
@@ -56,7 +69,7 @@ const isOptionsValid = computed(() => {
           </div>
           <div class="flex flex-col mt-4 gap-2">
             <label class="font-semibold">Варианты ответа</label>
-            <div v-for="(option, index) in form.options" :key="index" class="flex items-center">
+            <div v-for="(_, index) in form.options" :key="index" class="flex items-center">
               <div class="flex">
                 <div class="flex justify-between items-center w-100">
                   <div class="whitespace-nowrap mr-4">Вариант {{ index + 1 }}</div>
