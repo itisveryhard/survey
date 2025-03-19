@@ -149,6 +149,7 @@ onMounted(() => {
               id="connection"
               v-model="form.connectionType"
               :options="connectionOptions"
+              :disabled="!!props.question?.id"
               optionLabel="label"
               optionValue="value"
               class="w-full"
