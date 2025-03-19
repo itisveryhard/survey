@@ -10,13 +10,9 @@ defineProps({
 </script>
 
 <template>
-  <router-link :to="{ name: 'SurveyDetails', params: { id } }">
-    <div class="h-30 p-4 bg-green-200 rounded-md">
+  <router-link :to="{ name: 'EditSurvey', params: { id } }">
+    <div class="h-30 flex justify-center items-center font-semibold text-xl bg-green-200 rounded-md">
       {{ title }}
     </div>
   </router-link>
 </template>
-
-<style scoped>
-
-</style>
