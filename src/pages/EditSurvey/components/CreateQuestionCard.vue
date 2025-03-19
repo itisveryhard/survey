@@ -141,7 +141,13 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <Button label="Добавить вариант" class="mt-4 w-100" @click.prevent="addOption" :disabled="!isOptionsValid" />
+          <Button
+              v-if="!props.question?.id"
+              label="Добавить вариант"
+              class="mt-4 w-100"
+              @click.prevent="addOption"
+              :disabled="!isOptionsValid"
+          />
         </div>
         <div class="flex flex-col gap-2">
           <label for="connection" class="font-semibold">Тип подключения</label>
