@@ -5,16 +5,31 @@ const createQuestion = (body: TCreateQuestionParams) => {
     return axios.post<TQuestion>('/api/questions/', body)
 }
 
+const updateQuestion = (body: TCreateQuestionParams, id: string) => {
+    return axios.patch<TQuestion>(`/api/questions/${id}/`, body)
+}
+
 const addAnswerToQuestion = (body: TAddAnswerParams) => {
     return axios.post<TQuestion>('/api/answers/', body)
+}
+
+const updateAnswerQuestion = (body: TAddAnswerParams, id: string) => {
+    return axios.patch<TQuestion>(`/api/answers/${id}/`, body)
 }
 
 const addConnection = (body: TAddConnectionBody) => {
     return axios.post('/api/connections/', body)
 }
 
+const updateConnection = (body: TAddConnectionBody, id: string) => {
+    return axios.patch<TQuestion>(`/api/connections/${id}/`, body)
+}
+
 export const question = {
     createQuestion,
+    updateQuestion,
+    updateAnswerQuestion,
     addAnswerToQuestion,
-    addConnection
+    addConnection,
+    updateConnection
 }

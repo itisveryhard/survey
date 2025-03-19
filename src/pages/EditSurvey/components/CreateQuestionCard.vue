@@ -124,13 +124,14 @@ onMounted(() => {
               <div class="flex">
                 <div class="flex justify-between items-center w-100">
                   <div class="whitespace-nowrap mr-4">Вариант {{ index + 1 }}</div>
-                  <InputText v-model="form.options[index].text" class="w-full" />
+                  <InputText v-model="form.options[index].text" :disabled="!!props.question?.id" class="w-full" />
                 </div>
                 <div v-if="form.connectionType === 'specific'" class="ml-4 w-100">
                   <Dropdown
                       id="connection"
                       v-model="form.options[index].connection"
                       :options="availableQuestions"
+                      :disabled="!!props.question?.id"
                       optionLabel="title"
                       optionValue="title"
                       class="w-full"

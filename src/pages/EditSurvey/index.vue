@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Button } from "primevue";
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import CreateQuestionCard from "./components/CreateQuestionCard.vue";
 import { api } from "../../api";
 import { useRoute } from "vue-router";
-import type { TAnswerOptions, TConnectionType } from "../../api/question/question.types.ts";
+import type { TAnswerOptions, TConnectionType, TQuestion } from "../../api/question/question.types.ts";
 
 export type Question = {
   title: string;
@@ -22,6 +22,7 @@ defineOptions({
 const isLoading = ref(false);
 const title = ref('');
 const questions = ref<Question[]>([]);
+const savedQuestion = ref<TQuestion[]>([])
 const route = useRoute();
 
 const updateQuestion = (index: number, updatedQuestion: Question) => {
@@ -35,6 +36,7 @@ const addQuestion = () => {
 const getSurvey = () => {
   api.survey.getOne(String(route.params.id)).then(({ data }) => {
     title.value = data.title;
+    savedQuestion.value = [...data.questions];
     questions.value = data.questions ? data.questions.sort((a,b) => Number(a.id) - Number(b.id)).map((i, index) => {
       const obj: Question = {
         title: `Вопрос ${index + 1}`,
@@ -51,7 +53,7 @@ const getSurvey = () => {
               connection: questionIndex === -1 ? undefined : `Вопрос ${questionIndex + 1}`
             };
           }
-          return {text: answer.text};
+          return { text: answer.text };
         }) : []
       }
       if (obj.connectionType === 'any' && i.connections?.length) {
@@ -127,7 +129,16 @@ const createNewQuestion = (newQuestions: Question[]) => {
 }
 
 const editOldQuestions = (oldQuestions: Question[]) => {
-  console.log(oldQuestions)
+  const promises = oldQuestions.map(i => {
+    const prevItem = savedQuestion.value.find(question => question.id === i.id)
+    if(prevItem && i.text && prevItem.text !== i.text && i.id) {
+      return api.question.updateQuestion({
+        text: i.text,
+        survey: String(route.params.id)
+      }, i.id)
+    }
+  })
+  Promise.allSettled(promises);
 }
 
 const onSave = () => {
