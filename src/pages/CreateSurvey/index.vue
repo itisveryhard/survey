@@ -118,7 +118,7 @@ onMounted(() => {
         v-model:visible="isModalOpen"
         :is-edit="true"
         :initial-value="title"
-        :id="route.params.id"
+        :id="String(route.params.id)"
         @update-survey-title="updateTitle"
     />
   </div>
