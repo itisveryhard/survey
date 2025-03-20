@@ -104,8 +104,8 @@ const changeConnectionType = async () => {
 }
 
 const setSpecificConnection = ({ value }: {value: string}, item: TAnswerOptions) => {
-  const isExistedConnection = props.question?.connections && props.question.connections.find(i => i.id === item.connection)
-  if(isExistedConnection) {
+  const existedConnection = props.question?.connections && props.question.connections.find(i => i.id === item.connectionId)
+  if(existedConnection) {
     api.question.updateConnection(
         {
           connection_type: 'specific',
@@ -113,7 +113,7 @@ const setSpecificConnection = ({ value }: {value: string}, item: TAnswerOptions)
           to_question: value,
           from_question: props.question.id
         },
-        String(props.question?.nextQuestionId)
+        String(existedConnection.id)
     )
   } else {
     api.question.addConnection({

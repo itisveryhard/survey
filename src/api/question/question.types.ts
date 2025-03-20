@@ -2,6 +2,7 @@ export type TAnswerOptions = {
     id: string;
     text: string;
     connection?: string;
+    connectionId?: string;
 }
 
 export type TAddAnswerParams = {
