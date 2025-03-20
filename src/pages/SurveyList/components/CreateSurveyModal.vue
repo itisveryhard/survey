@@ -20,7 +20,7 @@ const createSurvey = () => {
   if(inputValue.value) {
     isLoading.value = true;
     api.survey.createSurvey({ title: inputValue.value }).then(({ data }) => {
-      router.push({ name: "EditSurvey", params: { id: data.id } });
+      router.push({ name: "CreateSurvey", params: { id: data.id } });
     }).finally(() => {
       isLoading.value = false;
     })

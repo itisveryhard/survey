@@ -25,11 +25,16 @@ const updateConnection = (body: TAddConnectionBody, id: string) => {
     return axios.patch<TQuestion>(`/api/connections/${id}/`, body)
 }
 
+const deleteAllConnections = (id: string) => {
+    return axios.delete<TQuestion>(`/api/questions/${id}/connections/`)
+}
+
 export const question = {
     createQuestion,
     updateQuestion,
     updateAnswerQuestion,
     addAnswerToQuestion,
     addConnection,
-    updateConnection
+    updateConnection,
+    deleteAllConnections
 }

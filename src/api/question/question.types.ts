@@ -1,4 +1,5 @@
 export type TAnswerOptions = {
+    id: string;
     text: string;
     connection?: string;
 }
@@ -15,15 +16,19 @@ export type TCreateQuestionParams = {
 
 export type TConnectionType = "any" | "specific";
 
+export type TConnections = {
+    connection_type: TConnectionType,
+    answer_option_id: null | string,
+    id: string;
+    to_question: string
+}
+
 export type TQuestion = {
     "id": string;
     "text": string,
     "survey"?: string,
     "answer_options"?: TAnswerOptions[],
-    "connections"?: {
-        connection_type: TConnectionType
-        to_question: string
-    }[]
+    "connections"?: TConnections[]
 }
 
 export type TAddConnectionBody = {

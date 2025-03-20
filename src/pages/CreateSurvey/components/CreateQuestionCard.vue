@@ -4,6 +4,8 @@ import { Button, InputText, Dropdown } from "primevue";
 import type { TAnswerOptions, TConnectionType } from "../../../api/question/question.types.ts";
 import type { Question } from "../index.vue";
 import type { PropType } from 'vue';
+import { api } from "../../../api";
+import { useRoute } from "vue-router";
 
 interface Form {
   question: string;
@@ -18,11 +20,12 @@ defineOptions({
 
 const props = defineProps({
   title: { type: String },
-  availableQuestions: { type: Array },
+  questions: { type: Array },
   question: { type: Object as PropType<Question> }
 });
 
 const emit = defineEmits(['update-question']);
+const route = useRoute();
 
 const form = ref<Form>({
   question: '',
@@ -31,54 +34,106 @@ const form = ref<Form>({
   nextQuestion: ''
 });
 
+const isLoading = ref(false);
+
 const connectionOptions = [
   { label: 'Любой ответ вопроса -> любой другой', value: 'any' },
   { label: 'Конкретный ответ вопроса -> любой другой', value: 'specific' }
 ];
 
 const addOption = () => {
-  form.value.options.push({ text: '' });
+  isLoading.value = true;
+  const text = `Вариант ${form.value.options.length + 1}`;
+  api.question.addAnswerToQuestion({ text, question: props.question.id }).then(({ data }) => {
+    form.value.options.push({ text, id: data.id });
+  }).finally(() => {
+    isLoading.value = false;
+  })
 };
 
-const isOptionsValid = computed(() => {
-  return form.value.options.every(option => option.text.trim() !== '');
-});
+let timeout = null;
 
-const emitUpdatedQuestion = () =>  {
+const handleQuestionInput = () => {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    if(!!form.value.question) {
+      api.question.updateQuestion({ text: form.value.question, survey: route.params.id }, props.question.id)
+    }
+  }, 500);
+};
+
+let answerTimer = null;
+
+const handleAnswerInput = (value, id) => {
+  clearTimeout(answerTimer);
+  answerTimer = setTimeout(() => {
+    if(!!value) {
+      api.question.updateAnswerQuestion(
+          { text: value, question: props.question.id },
+          id
+      )
+    }
+  }, 500);
+}
+
+const changeConnectionType = async () => {
+  if(props.question?.connections?.length) {
+    await api.question.deleteAllConnections(props.question?.id)
+  }
+  const clearedOptions = form.value.options.map(i => ({ text: i.text, id: i.id }))
+  form.value.nextQuestion = undefined;
+  form.value.options = clearedOptions;
   emit(
       'update-question',
       {
         id: props.question?.id,
         title: props.title,
         text: form.value.question,
-        connectionType: form.value.connectionType,
-        nextQuestion: form.value.nextQuestion,
-        answer_options: form.value.options
+        connectionType: null,
+        nextQuestion: undefined,
+        nextQuestionId: undefined,
+        answer_options: clearedOptions
       }
   );
 }
 
-watch(
-    () => form.value.question,
-    () => {
-      emitUpdatedQuestion();
-    }
-);
+const setSpecificConnection = ({ value }, item) => {
+  const isExistedConnection = props.question.connections && props.question.connections.find(i => i.id === item.connection)
+  if(isExistedConnection) {
+    api.question.updateConnection({
+      connection_type: 'specific',
+      answer_option: String(item.id),
+      to_question: value,
+      from_question: props.question.id
+    }, props.question.nextQuestionId)
+  } else {
+    api.question.addConnection({
+      connection_type: 'specific',
+      from_question: props.question.id,
+      answer_option: String(item.id),
+      to_question: value
+    })
+  }
+}
 
-watch(
-    () => form.value.nextQuestion,
-    () => {
-      emitUpdatedQuestion();
-    }
-);
+const setAnyConnection = ({ value }) => {
+  if(props.question.connectionType) {
+    api.question.updateConnection({
+      connection_type: 'any',
+      answer_option: null,
+      to_question: value,
+      from_question: props.question.id
+    }, props.question.nextQuestionId)
+  } else {
+    api.question.addConnection({
+      connection_type: 'any',
+      from_question: props.question.id,
+      answer_option: null,
+      to_question: value
+    })
+  }
+}
 
-watch(
-    () => form.value.options,
-    () => {
-      emitUpdatedQuestion();
-    },
-    { deep: true }
-);
 
 onMounted(() => {
   if(props.question) {
@@ -107,33 +162,38 @@ onMounted(() => {
             <Dropdown
                 id="connection"
                 v-model="form.nextQuestion"
-                :options="availableQuestions"
+                :options="questions.filter(i => i.id !== question.id)"
+                @change="setAnyConnection"
                 optionLabel="title"
-                optionValue="title"
+                optionValue="id"
                 class="w-full"
                 placeholder="Выберите связь"
             />
           </div>
           <div class="flex flex-col mt-4 gap-2 w-100">
             <label for="question" class="font-semibold">Вопрос</label>
-            <InputText id="question" v-model="form.question" class="w-full" />
+            <InputText id="question" v-model="form.question" @input="handleQuestionInput" class="w-full" />
           </div>
           <div class="flex flex-col mt-4 gap-2">
             <label class="font-semibold">Варианты ответа</label>
-            <div v-for="(_, index) in form.options" :key="index" class="flex items-center">
+            <div v-for="(item, index) in form.options" :key="index" class="flex items-center">
               <div class="flex">
                 <div class="flex justify-between items-center w-100">
                   <div class="whitespace-nowrap mr-4">Вариант {{ index + 1 }}</div>
-                  <InputText v-model="form.options[index].text" :disabled="!!props.question?.id" class="w-full" />
+                  <InputText
+                      v-model="form.options[index].text"
+                      @input="(e) => handleAnswerInput(e.target.value, item.id)"
+                      class="w-full"
+                  />
                 </div>
                 <div v-if="form.connectionType === 'specific'" class="ml-4 w-100">
                   <Dropdown
                       id="connection"
                       v-model="form.options[index].connection"
-                      :options="availableQuestions"
-                      :disabled="!!props.question?.id"
+                      :options="questions.filter(i => i.id !== question.id)"
+                      @change="(val) => setSpecificConnection(val, item)"
                       optionLabel="title"
-                      optionValue="title"
+                      optionValue="id"
                       class="w-full"
                       placeholder="Выберите связь"
                   />
@@ -142,11 +202,10 @@ onMounted(() => {
             </div>
           </div>
           <Button
-              v-if="!props.question?.id"
               label="Добавить вариант"
               class="mt-4 w-100"
+              :loading="isLoading"
               @click.prevent="addOption"
-              :disabled="!isOptionsValid"
           />
         </div>
         <div class="flex flex-col gap-2">
@@ -155,7 +214,7 @@ onMounted(() => {
               id="connection"
               v-model="form.connectionType"
               :options="connectionOptions"
-              :disabled="!!props.question?.id"
+              @change="changeConnectionType"
               optionLabel="label"
               optionValue="value"
               class="w-full"
