@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Button, InputText, Dropdown } from "primevue";
-import type { TAnswerOptions, TConnectionType } from "../../../api/question/question.types.ts";
+import type {TAnswerOptions, TConnectionType } from "../../../api/question/question.types.ts";
 import type { Question } from "../index.vue";
 import type { PropType } from 'vue';
 import { api } from "../../../api";
@@ -20,7 +20,7 @@ defineOptions({
 
 const props = defineProps({
   title: { type: String },
-  questions: { type: Array },
+  questions: { type: Array as PropType<Question[]> },
   question: { type: Object as PropType<Question> }
 });
 
@@ -42,32 +42,38 @@ const connectionOptions = [
 ];
 
 const addOption = () => {
-  isLoading.value = true;
-  const text = `Вариант ${form.value.options.length + 1}`;
-  api.question.addAnswerToQuestion({ text, question: props.question.id }).then(({ data }) => {
-    form.value.options.push({ text, id: data.id });
-  }).finally(() => {
-    isLoading.value = false;
-  })
+  if(props.question) {
+    isLoading.value = true;
+    const text = `Вариант ${form.value.options.length + 1}`;
+    api.question.addAnswerToQuestion({ text, question: props.question.id }).then(({ data }) => {
+      form.value.options.push({ text, id: data.id });
+    }).finally(() => {
+      isLoading.value = false;
+    })
+  }
 };
 
-let timeout = null;
+let timeout: ReturnType<typeof setTimeout> | null = null;
 
 const handleQuestionInput = () => {
-  clearTimeout(timeout);
+  if(timeout) {
+    clearTimeout(timeout);
+  }
   timeout = setTimeout(() => {
-    if(!!form.value.question) {
-      api.question.updateQuestion({ text: form.value.question, survey: route.params.id }, props.question.id)
+    if(!!form.value.question && props.question) {
+      api.question.updateQuestion({ text: form.value.question, survey: String(route.params.id) }, props.question.id)
     }
   }, 500);
 };
 
-let answerTimer = null;
+let answerTimer: ReturnType<typeof setTimeout> | null = null;
 
-const handleAnswerInput = (value, id) => {
-  clearTimeout(answerTimer);
+const handleAnswerInput = (value: string, id: string) => {
+  if(answerTimer) {
+    clearTimeout(answerTimer);
+  }
   answerTimer = setTimeout(() => {
-    if(!!value) {
+    if(!!value && props.question) {
       api.question.updateAnswerQuestion(
           { text: value, question: props.question.id },
           id
@@ -81,7 +87,7 @@ const changeConnectionType = async () => {
     await api.question.deleteAllConnections(props.question?.id)
   }
   const clearedOptions = form.value.options.map(i => ({ text: i.text, id: i.id }))
-  form.value.nextQuestion = undefined;
+  form.value.nextQuestion = '';
   form.value.options = clearedOptions;
   emit(
       'update-question',
@@ -97,37 +103,40 @@ const changeConnectionType = async () => {
   );
 }
 
-const setSpecificConnection = ({ value }, item) => {
-  const isExistedConnection = props.question.connections && props.question.connections.find(i => i.id === item.connection)
+const setSpecificConnection = ({ value }: {value: string}, item: TAnswerOptions) => {
+  const isExistedConnection = props.question?.connections && props.question.connections.find(i => i.id === item.connection)
   if(isExistedConnection) {
-    api.question.updateConnection({
-      connection_type: 'specific',
-      answer_option: String(item.id),
-      to_question: value,
-      from_question: props.question.id
-    }, props.question.nextQuestionId)
+    api.question.updateConnection(
+        {
+          connection_type: 'specific',
+          answer_option: String(item.id),
+          to_question: value,
+          from_question: props.question.id
+        },
+        String(props.question?.nextQuestionId)
+    )
   } else {
     api.question.addConnection({
       connection_type: 'specific',
-      from_question: props.question.id,
+      from_question: String(props.question?.id),
       answer_option: String(item.id),
       to_question: value
     })
   }
 }
 
-const setAnyConnection = ({ value }) => {
-  if(props.question.connectionType) {
+const setAnyConnection = ({ value }: { value: string }) => {
+  if(props.question?.connectionType) {
     api.question.updateConnection({
       connection_type: 'any',
       answer_option: null,
       to_question: value,
       from_question: props.question.id
-    }, props.question.nextQuestionId)
+    }, String(props.question?.nextQuestionId))
   } else {
     api.question.addConnection({
       connection_type: 'any',
-      from_question: props.question.id,
+      from_question: String(props.question?.id),
       answer_option: null,
       to_question: value
     })
@@ -162,7 +171,7 @@ onMounted(() => {
             <Dropdown
                 id="connection"
                 v-model="form.nextQuestion"
-                :options="questions.filter(i => i.id !== question.id)"
+                :options="questions ? questions.filter((i: Question) => i.id !== question?.id) : []"
                 @change="setAnyConnection"
                 optionLabel="title"
                 optionValue="id"
@@ -182,7 +191,7 @@ onMounted(() => {
                   <div class="whitespace-nowrap mr-4">Вариант {{ index + 1 }}</div>
                   <InputText
                       v-model="form.options[index].text"
-                      @input="(e) => handleAnswerInput(e.target.value, item.id)"
+                      @input="(e) => handleAnswerInput((e.target as HTMLInputElement).value, item.id)"
                       class="w-full"
                   />
                 </div>
@@ -190,7 +199,7 @@ onMounted(() => {
                   <Dropdown
                       id="connection"
                       v-model="form.options[index].connection"
-                      :options="questions.filter(i => i.id !== question.id)"
+                      :options="questions ? questions.filter((i: Question) => i.id !== question?.id) : []"
                       @change="(val) => setSpecificConnection(val, item)"
                       optionLabel="title"
                       optionValue="id"
