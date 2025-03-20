@@ -5,6 +5,7 @@ import CreateQuestionCard from "./components/CreateQuestionCard.vue";
 import { api } from "../../api";
 import { useRoute } from "vue-router";
 import type { TAnswerOptions, TConnectionType, TConnections, TQuestion } from "../../api/question/question.types.ts";
+import CreateSurveyModal from "../SurveyList/components/CreateSurveyModal.vue";
 
 export type Question = {
   title: string;
@@ -25,10 +26,15 @@ const isLoading = ref(false);
 const title = ref('');
 const questions = ref<Question[]>([]);
 const savedQuestion = ref<TQuestion[]>([])
+const isModalOpen = ref(false);
 const route = useRoute();
 
 const updateQuestion = (index: number, updatedQuestion: Question) => {
   questions.value[index] = updatedQuestion;
+}
+
+const updateTitle = (value: string) => {
+  title.value = value
 }
 
 const addQuestion = () => {
@@ -87,7 +93,10 @@ onMounted(() => {
 <template>
   <div class="w-full flex flex-col">
     <div class="flex justify-between">
-      <h1 class="text-xl font-semibold">{{ title }}</h1>
+      <div class="flex items-center">
+        <h1 class="text-xl font-semibold">{{ title }}</h1>
+        <Button label="Редактировать название" @click="isModalOpen = true" class="ml-4" />
+      </div>
       <router-link :to="{ name: 'SurveyDetails', params: { id: route.params.id }}">
         <Button :disabled="!questions.length" label="Просмотр" />
       </router-link>
@@ -105,5 +114,12 @@ onMounted(() => {
     <div class="flex justify-center mt-4 pb-4">
       <Button label="Добавить вопрос" class="w-100" :loading="isLoading" @click="addQuestion" />
     </div>
+    <create-survey-modal
+        v-model:visible="isModalOpen"
+        :is-edit="true"
+        :initial-value="title"
+        :id="route.params.id"
+        @update-survey-title="updateTitle"
+    />
   </div>
 </template>

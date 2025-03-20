@@ -17,9 +17,14 @@ const createSurvey = (body: TCreateSurveyPayload) => {
     return axios.post<TSurvey>('/api/surveys/', body);
 }
 
+const updateSurvey = (body: TCreateSurveyPayload, id: string) => {
+    return axios.patch<TSurvey>(`/api/surveys/${id}/`, body);
+}
+
 export const survey = {
     getOne,
     getList,
     createSurvey,
-    updateOne
+    updateOne,
+    updateSurvey
 }

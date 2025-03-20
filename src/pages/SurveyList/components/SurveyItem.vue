@@ -11,7 +11,7 @@ defineProps({
 
 <template>
   <router-link :to="{ name: 'CreateSurvey', params: { id } }">
-    <div class="h-30 flex justify-center items-center font-semibold text-xl bg-green-200 rounded-md">
+    <div class="h-30 w-[300px] flex justify-center items-center border hover:shadow-[0_0_10px_rgba(0,0,0,0.5)] shadow-md font-semibold text-xl rounded-md">
       {{ title }}
     </div>
   </router-link>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineModel, ref } from "vue";
+import { defineModel, ref, toRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
@@ -10,22 +10,47 @@ defineOptions({
   name: 'CreateSurveyModal'
 });
 
+const props = defineProps({
+  isEdit: Boolean,
+  initialValue: String,
+  id: String
+})
+
 const visible = defineModel("visible", { type: Boolean });
+const emit = defineEmits(['update-survey-title']);
 
 const isLoading = ref(false);
 const inputValue = ref<string>('');
+const initialValueRef = toRef(props, "initialValue");
 const router = useRouter();
 
 const createSurvey = () => {
   if(inputValue.value) {
     isLoading.value = true;
-    api.survey.createSurvey({ title: inputValue.value }).then(({ data }) => {
-      router.push({ name: "CreateSurvey", params: { id: data.id } });
-    }).finally(() => {
-      isLoading.value = false;
-    })
+    if(props.isEdit) {
+      api.survey.updateSurvey({ title: inputValue.value }, String(props.id)).then(() => {
+        emit('update-survey-title', inputValue.value)
+      }).finally(() => {
+        isLoading.value = false;
+        visible.value = false;
+      })
+    } else {
+      api.survey.createSurvey({ title: inputValue.value }).then(({ data }) => {
+        router.push({ name: "CreateSurvey", params: { id: data.id } });
+      }).finally(() => {
+        isLoading.value = false;
+      })
+    }
   }
 }
+
+
+watch(initialValueRef, (newValue) => {
+  console.log(initialValueRef)
+  if (newValue) {
+    inputValue.value = newValue;
+  }
+});
 </script>
 
 <template>
@@ -35,6 +60,7 @@ const createSurvey = () => {
       <InputText
           id="inputData"
           v-model="inputValue"
+          :disabled="isLoading"
           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
       />
     </div>

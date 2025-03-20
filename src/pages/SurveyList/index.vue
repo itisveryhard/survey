@@ -26,17 +26,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-full mt-10">
+  <div class="w-full flex flex-col flex-1 justify-between">
+    <div class="mt-4">
+      <div class="font-semibold text-xl">История опросов</div>
+      <div class="mt-4 gap-4">
+        <SurveyItem v-for="item in surveys" :key="item.id" :title="item.title" :id="item.id" />
+      </div>
+    </div>
     <div class="flex justify-center">
       <Button label="Создать опрос" @click="isModalOpen = true" class="w-100" />
-    </div>
-    <div class="mt-4">
-      <div>История опросов</div>
-      <div class="mt-4 grid grid-cols-3 gap-4">
-        <div v-for="item in surveys" :key="item.id">
-          <SurveyItem :title="item.title" :id="item.id" />
-        </div>
-      </div>
     </div>
     <create-survey-modal v-model:visible="isModalOpen" />
   </div>
