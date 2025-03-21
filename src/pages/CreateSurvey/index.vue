@@ -12,7 +12,7 @@ export type Question = {
   text: string;
   connectionType?: TConnectionType;
   answer_options?: TAnswerOptions[];
-  connections?: TConnections[],
+  connections: TConnections[],
   nextQuestion?: string;
   nextQuestionId?: string;
   id: string;
@@ -47,6 +47,7 @@ const addQuestion = () => {
       title: `Вопрос ${questions.value.length + 1}`,
       answer_options: [],
       text: 'Текст вопроса',
+      connections: [],
       id: data.id
     });
   }).finally(() => {
@@ -76,7 +77,7 @@ const getSurvey = () => {
           }
           return { text: answer.text, id: answer.id };
         }) : [],
-        connections: i.connections,
+        connections: i.connections || [],
         nextQuestion: i.connections?.[0]?.connection_type === 'any' ? i.connections?.[0]?.to_question : undefined,
         nextQuestionId: i.connections?.[0]?.connection_type === 'any' ? i.connections?.[0]?.id : undefined,
       }

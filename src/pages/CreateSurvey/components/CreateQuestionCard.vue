@@ -104,7 +104,8 @@ const changeConnectionType = async () => {
 }
 
 const setSpecificConnection = ({ value }: {value: string}, item: TAnswerOptions) => {
-  const existedConnection = props.question?.connections && props.question.connections.find(i => i.id === item.connectionId)
+  const editableItem = props.question?.answer_options?.find(i => i.id === item.id);
+  const existedConnection = props.question?.connections && props.question.connections.find(i => i.id === editableItem?.connectionId)
   if(existedConnection) {
     api.question.updateConnection(
         {
@@ -121,6 +122,21 @@ const setSpecificConnection = ({ value }: {value: string}, item: TAnswerOptions)
       from_question: String(props.question?.id),
       answer_option: String(item.id),
       to_question: value
+    }).then(({ data }) => {
+      const tempAnswerOptions = [...(props.question?.answer_options || [])];
+      const answerIndex = tempAnswerOptions.findIndex(i => i.id === item.id)
+      tempAnswerOptions[answerIndex] = {
+        ...tempAnswerOptions[answerIndex],
+        connection: data.to_question,
+        connectionId: data.id,
+      }
+      emit('update-question',
+          {
+            ...props.question,
+            answer_options: tempAnswerOptions,
+            connections: [...(props.question?.connections || []), data]
+          }
+      )
     })
   }
 }
@@ -139,6 +155,15 @@ const setAnyConnection = ({ value }: { value: string }) => {
       from_question: String(props.question?.id),
       answer_option: null,
       to_question: value
+    }).then(({ data }) => {
+      emit('update-question',
+          {
+            ...props.question,
+            connectionType: 'any',
+            nextQuestion: data.to_question,
+            nextQuestionId: data.id
+          }
+      )
     })
   }
 }

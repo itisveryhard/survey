@@ -46,7 +46,6 @@ const createSurvey = () => {
 
 
 watch(initialValueRef, (newValue) => {
-  console.log(initialValueRef)
   if (newValue) {
     inputValue.value = newValue;
   }
