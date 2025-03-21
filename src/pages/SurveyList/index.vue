@@ -29,7 +29,7 @@ onMounted(() => {
   <div class="w-full flex flex-col flex-1 justify-between">
     <div class="mt-4">
       <div class="font-semibold text-xl">История опросов</div>
-      <div class="mt-4 gap-4">
+      <div class="mt-4 gap-4 flex flex-wrap">
         <SurveyItem v-for="item in surveys" :key="item.id" :title="item.title" :id="item.id" />
       </div>
     </div>

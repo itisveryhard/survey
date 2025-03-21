@@ -95,11 +95,20 @@ onMounted(() => {
     <div class="flex justify-between">
       <div class="flex items-center">
         <h1 class="text-xl font-semibold">{{ title }}</h1>
-        <Button label="Редактировать название" @click="isModalOpen = true" class="ml-4" />
+        <Button @click="isModalOpen = true" class="ml-4">
+          <i class="pi pi-pencil" />
+        </Button>
       </div>
-      <router-link :to="{ name: 'SurveyDetails', params: { id: route.params.id }}">
-        <Button :disabled="!questions.length" label="Просмотр" />
-      </router-link>
+      <div class="flex items-center">
+        <router-link :to="{ name: 'SurveyDetails', params: { id: route.params.id }}">
+          <Button :disabled="!questions.length" label="Просмотр" />
+        </router-link>
+        <router-link :to="{ name: 'SurveyList' }">
+          <Button class="ml-4">
+            <i class="pi pi-times" style="font-size: 1.5rem" />
+          </Button>
+        </router-link>
+      </div>
     </div>
     <div class="flex-1">
       <div v-for="(item, index) in questions" :key="index" class="mt-4">
