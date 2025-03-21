@@ -21,4 +21,4 @@ npm run dev
 - [Vue 3](https://vuejs.org/) – современный фронтенд-фреймворк
 - [TypeScript](https://www.typescriptlang.org/) – строгая типизация для JavaScript
 - [Vite](https://vitejs.dev/) – сверхбыстрая сборка
-- [PrimeVue](https://www.primefaces.org/primevue/) – UI-библиотека компонентов
+- [PrimeVue](https://primevue.org/) – UI-библиотека компонентов
