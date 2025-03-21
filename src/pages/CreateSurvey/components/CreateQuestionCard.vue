@@ -243,7 +243,7 @@ onMounted(() => {
           />
         </div>
         <div class="flex flex-col gap-2">
-          <label for="connection" class="font-semibold">Тип подключения</label>
+          <label for="connection" class="font-semibold">Тип связи</label>
           <Dropdown
               id="connection"
               v-model="form.connectionType"
