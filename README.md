@@ -2,23 +2,23 @@
 
 ## 🚀 Установка и запуск
 
-Проект можно развернуть всего двумя командами:
+You can get the project up and running with just two commands:
 
 ```sh
-npm install  # Установка зависимостей
-npm run build # Сборка проекта
+npm install  # Install dependencies
+npm run build # Build the project
 ```
 
-### 📌 Запуск dev-сервера
+### 📌 Running the Dev Server
 
-Если нужно запустить проект в режиме разработки:
+To start the project in development mode:
 ```sh
 npm run dev
 ```
 
-## 🛠️ Основные технологии
+## 🛠️ Core Technologies
 
-- [Vue 3](https://vuejs.org/) – современный фронтенд-фреймворк
-- [TypeScript](https://www.typescriptlang.org/) – строгая типизация для JavaScript
-- [Vite](https://vitejs.dev/) – сверхбыстрая сборка
-- [PrimeVue](https://primevue.org/) – UI-библиотека компонентов
+- [Vue 3](https://vuejs.org/) – modern frontend framework
+- [TypeScript](https://www.typescriptlang.org/) – strict typing for JavaScript
+- [Vite](https://vitejs.dev/) – lightning-fast build tool
+- [PrimeVue](https://primevue.org/) – UI component library
