@@ -1,6 +1,6 @@
 # 📌 Vue 3 + TypeScript + Vite + PrimeVue Project
 
-## 🚀 Установка и запуск
+## 🚀 Installation and Setup
 
 You can get the project up and running with just two commands:
 
